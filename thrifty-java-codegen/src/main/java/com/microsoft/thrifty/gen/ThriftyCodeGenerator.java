@@ -1168,8 +1168,11 @@ public final class ThriftyCodeGenerator {
             fromCodeMethod.addStatement("case $L: return $N", value, name);
         }
 
+        TypeSpec.Builder unknownMember = TypeSpec.anonymousClassBuilder("$L", Integer.MAX_VALUE);
+        builder.addEnumConstant("Unknown", unknownMember.build());
+
         fromCodeMethod
-                .addStatement("default: return null")
+                .addStatement("default: return Unknown")
                 .endControlFlow();
 
         builder.addMethod(fromCodeMethod.build());

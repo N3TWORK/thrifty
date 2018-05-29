@@ -390,7 +390,9 @@ public class ThriftyCodeGeneratorTest {
                 "  /**\n" +
                 "   * $Good, here's another\n" +
                 "   */\n" +
-                "  FOO(0);\n" +
+                "  FOO(0),\n" +
+                "\n" +
+                "  Unknown(2147483647);\n" +
                 "\n" +
                 "  public final int value;\n" +
                 "\n" +
@@ -401,7 +403,7 @@ public class ThriftyCodeGeneratorTest {
                 "  public static TestEnum findByValue(int value) {\n" +
                 "    switch (value) {\n" +
                 "      case 0: return FOO;\n" +
-                "      default: return null;\n" +
+                "      default: return Unknown;\n" +
                 "    }\n" +
                 "  }\n" +
                 "}\n";
