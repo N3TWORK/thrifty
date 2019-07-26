@@ -28,6 +28,7 @@
  */
 
 namespace java com.microsoft.thrifty.integration.gen
+namespace kt com.microsoft.thrifty.integration.kgen
 
 /**
  * Docstring!
@@ -41,6 +42,8 @@ enum Numberz
   SIX,
   EIGHT = 8
 }
+
+const double ActualDouble = 42
 
 const Numberz myNumberz = Numberz.ONE;
 // the following is expected to fail:
@@ -115,6 +118,19 @@ struct EmptyStruct {}
 
 struct OneField {
   1: EmptyStruct field
+}
+
+union TheEmptyUnion {}
+
+union NonEmptyUnion {
+  1: i32 AnInt;
+  2: i64 ALong;
+  3: string AString;
+  4: Bonk ABonk;
+}
+
+struct HasUnion {
+    1: required NonEmptyUnion TheUnion;
 }
 
 service ThriftTest
@@ -294,6 +310,12 @@ service ThriftTest
    * @param i32 secondsToSleep - the number of seconds to sleep
    */
   oneway void testOneway(1:i32 secondsToSleep)
+
+  /**
+   * Prints 'testUnionArgument()' and returns the argument unmodified, wrapped in a
+   * HasUnion struct.
+   **/
+  HasUnion testUnionArgument(1: NonEmptyUnion arg0)
 }
 
 service SecondService
@@ -416,4 +438,35 @@ struct ObfuscatedCollections {
 
 struct HasObfuscation {
   1: optional string ssn (obfuscated = "true")
+}
+
+const map<string, map<string, map<i32, i32>>> HEINOUS = {
+  "foo": {"bar": {1: 2, 3: 4}},
+  "baz": {"qux": {5: 6, 7: 8}}
+}
+
+const list<set<map<string, i32>>> ALL_THE_COLLECTIONS = [[], [{"foo": 1, "bar": 2}]]
+
+struct MapsOfEnums {
+  1: map<Numberz, Numberz> mapOne;
+  2: map<list<Numberz>, Numberz> mapTwo;
+}
+
+struct MapsOfCollections {
+  1: map<set<i32>, set<string>> mapOfSets;
+  2: map<list<double>, list<i64>> mapOfLists;
+  3: map<map<i32, i32>, map<i8, i8>> mapOfMaps;
+}
+
+union TestUnion {
+  1: i32 AnInt;
+  2: i64 ALong;
+  3: string Text;
+  4: Bonk aBonk;
+}
+
+union EmptyUnion {}
+
+struct HasEmptyUnion {
+  1: EmptyUnion theEmptyUnion;
 }

@@ -19,12 +19,20 @@
  * See the Apache Version 2.0 License for specific language governing permissions and limitations under the License.
  */
 
+apply plugin: 'kotlin'
+apply plugin: 'application'
+apply plugin: 'com.github.johnrengelman.shadow'
+
 dependencies {
     implementation project(':thrifty-compiler')
 
     testImplementation project(':thrifty-runtime')
+    testImplementation project(':thrifty-runtime-ktx')
     testImplementation project(':thrifty-test-server')
     testImplementation libraries.guava
+
+    testImplementation libraries.kotlin
+    testImplementation libraries.testing
 
     testImplementation 'junit:junit:4.11'
 }
@@ -33,37 +41,100 @@ uploadArchives.enabled = false
 
 sourceSets {
     test {
-        java.srcDirs += ['build/generated-src/thrifty']
+        java.srcDirs += ['build/generated-src/thrifty/java', 'build/generated-src/thrifty/kotlin']
     }
 }
 
-jar {
-    [configurations.default].each { config ->
-        from(config.collect { it.isDirectory() ? it : zipTree(it) }) {
-            exclude 'META-INF/services/*'
-        }
-    }
-
-    manifest {
-        attributes("Main-Class": "com.microsoft.thrifty.compiler.ThriftyCompiler")
+shadowJar {
+    mergeServiceFiles {
+        exclude 'META-INF/services/*'
     }
 }
+
+mainClassName = 'com.microsoft.thrifty.compiler.ThriftyCompiler'
 
 task compileTestThrift(type: Exec) {
-    def jarTask = project.tasks['jar'] as Jar
+    def jarTask = project.tasks['shadowJar'] as Jar
+
+    inputs.file("$projectDir/ClientThriftTest.thrift")
+    outputs.dir("$projectDir/build/generated-src/thrifty/java")
 
     dependsOn jarTask
 
     executable 'java'
-    args = ['-jar', jarTask.archivePath.absolutePath, "--out=$projectDir/build/generated-src/thrifty", "$projectDir/ClientThriftTest.thrift"]
+    args = [
+            '-jar',
+            jarTask.archivePath.absolutePath,
+            "--out=$projectDir/build/generated-src/thrifty/java",
+            "--generated-annotation-type=native",
+            "$projectDir/ClientThriftTest.thrift"]
+}
+
+
+task kompileTestThrift(type: Exec) {
+    def jarTask = project.tasks['shadowJar'] as Jar
+
+    inputs.file("$projectDir/ClientThriftTest.thrift")
+    inputs.files(jarTask.outputs)
+    outputs.dir("$projectDir/build/generated-src/thrifty/kotlin")
+
+    dependsOn jarTask
+
+    executable 'java'
+    args = [
+            '-jar',
+            jarTask.archivePath.absolutePath,
+            "--out=$projectDir/build/generated-src/thrifty/kotlin",
+            "--lang=kotlin",
+            "--map-type=java.util.LinkedHashMap",
+            "--set-type=java.util.LinkedHashSet",
+            "--list-type=java.util.ArrayList",
+            "--generated-annotation-type=native",
+            "$projectDir/ClientThriftTest.thrift"
+    ]
+}
+
+task kompileCoroutineTestThrift(type: Exec) {
+    def jarTask = project.tasks['shadowJar'] as Jar
+
+    inputs.file("$projectDir/CoroutineClientTest.thrift")
+    inputs.files(jarTask.outputs)
+    outputs.dir("$projectDir/build/generated-src/thrifty/kotlin")
+
+    dependsOn jarTask
+
+    executable 'java'
+    args = [
+            '-jar',
+            jarTask.archivePath.absolutePath,
+            "--out=$projectDir/build/generated-src/thrifty/kotlin",
+            "--lang=kotlin",
+            "--generated-annotation-type=native",
+            "--kt-coroutine-clients",
+            "--experimental-kt-builderless-structs",
+            "$projectDir/CoroutineClientTest.thrift"
+    ]
+}
+
+compileTestKotlin {
+    dependsOn compileTestThrift
+    dependsOn kompileTestThrift
+    dependsOn kompileCoroutineTestThrift
+}
+
+task cleanTestCode(type: Delete) {
+    delete "$projectDir/build/generated-src/thrifty"
+}
+
+clean {
+    dependsOn cleanTestCode
 }
 
 compileTestJava {
     dependsOn compileTestThrift
-    options.compilerArgs += [ '-Xep:ReferenceEquality:OFF' ]
+    dependsOn kompileTestThrift
 }
 
 tasks['javadoc'].configure {
     exclude '**/generated-src/**'
 }
-

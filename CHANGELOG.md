@@ -1,3 +1,35 @@
+1.0.0 (released 2 November 2018)
+------------------
+- #259: Enable configurable `@Generated` annotation type
+- #254: Update to Kotlin 1.3, update generated coroutine APIs to be non-experimental
+- #250: Add `@NonNull` to struct builder's copy ctor (thanks, @jparise)
+- #241: Add nullable annotation to gen'd `findByValue` methods (thanks, @jparise)
+- #239: Fix: Canonicalize paths of all loaded thrift files
+- #236: Only use base filename in constants' comments (thanks, @jparise)
+
+1.0.0-RC2 (released 10 September 2018)
+------------------
+- #235: Emit `@Generated` annotations on generated types
+- #234: Add '--omit-file-comments' compiler flag (thanks, @jparise)
+- #232: Add synthetic "JVM" namespace scope (yet again, thanks @hzsweers)
+- #231: Add "functional-equality" implementation for schemas (thanks, @hzsweers)
+- #230: Add rendering tool for thrifty-schema (thanks, @hzsweers)
+
+1.0.0-RC1 (released 15 August 2018)
+------------------
+- #225: Add Kotlin coroutine-based service client APIs
+- #224: Fix ClientBase by adding missing call to protocol.readMessageEnd()
+- #223: Fix FramedTransport reads over > 1 frame
+- #217: Avoid scope collisions when reading map values (thanks again, @jparise!)
+- #216: Fix const validation for doubles (thanks, @jparise)
+- General: Broke thrifty-schema API in favor of idiomatic Kotlin
+- #204: Remove deprecated java.io.File methods in Loader
+- #183: Added Kotlin codegen
+- #178: Fix: .thrift files in include paths during path scanning
+- #165: Adopted Guava's case formatter for FieldNamingPolicy
+- #164: Fixed nullability annotations for struct builders
+- #161: Generate @Nullable annotations for union fields
+
 0.4.3 (released 8 January 2018)
 ------------------
 - #156: Add JSON protocol support

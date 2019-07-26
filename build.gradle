@@ -28,24 +28,47 @@ allprojects {
     version VERSION
 
     project.ext {
+        kotlin_version = '1.3.0'
+
         libraries = [
-                guava: [
-                        'com.google.guava:guava:21.0'
+                clikt: [
+                        'com.github.ajalt:clikt:1.4.0'
                 ],
 
-                okio: [
-                        'com.squareup.okio:okio:1.11.0'
+                guava: [
+                        'com.google.guava:guava:23.0'
                 ],
 
                 javaPoet: [
-                        'com.squareup:javapoet:1.8.0'
+                        'com.squareup:javapoet:1.11.1'
+                ],
+
+                kotlin: [
+                        "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version",
+                ],
+
+                kotlinPoet: [
+                        dependencies.create('com.squareup:kotlinpoet:1.0.0-RC1') {
+                            exclude module: 'kotlin-stdlib'
+                            exclude module: 'kotlin-reflect'
+                        },
+                        "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
+                ],
+
+                okio: [
+                        'com.squareup.okio:okio:1.14.1'
                 ],
 
                 testing: [
                         'junit:junit:4.12',
-                        'org.mockito:mockito-core:1.10.19',
+                        'com.nhaarman.mockitokotlin2:mockito-kotlin:2.0.0',
                         'com.google.truth:truth:0.28',
-                        'org.hamcrest:hamcrest-all:1.3'
+                        'org.hamcrest:hamcrest-all:1.3',
+                        dependencies.create('io.kotlintest:kotlintest-assertions:3.1.8') {
+                            exclude module: 'kotlin-stdlib'
+                            exclude module: 'kotlin-reflect'
+                        },
+                        "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
                 ]
         ]
     }
@@ -54,14 +77,16 @@ allprojects {
 buildscript {
     repositories {
         mavenCentral()
-        jcenter()
         maven {
             url "https://plugins.gradle.org/m2/"
         }
     }
 
     dependencies {
-        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.10'
+        classpath 'net.ltgt.gradle:gradle-errorprone-plugin:0.0.14'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.3.0"
+        classpath 'org.jetbrains.dokka:dokka-gradle-plugin:0.9.17'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:4.0.2'
     }
 }
 
@@ -69,7 +94,6 @@ subprojects { sp ->
     apply plugin: 'java-library'
     apply plugin: 'idea'
     apply plugin: 'checkstyle'
-    apply plugin: 'net.ltgt.errorprone'
     apply plugin: 'jacoco'
 
     sourceCompatibility = '1.8'
@@ -82,10 +106,6 @@ subprojects { sp ->
         sourceSets = [sourceSets.main]
     }
 
-    configurations.errorprone {
-        resolutionStrategy.force 'com.google.errorprone:error_prone_core:2.0.18'
-    }
-
     tasks.withType(Checkstyle) {
         exclude '**/antlr/**'
     }
@@ -93,22 +113,6 @@ subprojects { sp ->
     tasks.withType(JavaCompile) {
         options.fork = true
         options.incremental = true
-    }
-
-    task javadocJar(type: Jar, dependsOn: javadoc) {
-        from 'build/docs/javadoc'
-        classifier = 'javadoc'
-    }
-
-    task sourcesJar(type: Jar) {
-        from sourceSets.main.allSource
-        classifier = 'sources'
-    }
-
-    artifacts {
-        archives jar
-        archives javadocJar
-        archives sourcesJar
     }
 
     test {
@@ -132,10 +136,10 @@ task codeCoverageReport(type: JacocoReport) {
     }
 
     reports {
-        xml.enabled true
-        xml.destination "$buildDir/reports/jacoco/report.xml"
-        html.enabled true
-        csv.enabled false
+        xml.enabled = true
+        xml.destination file("$buildDir/reports/jacoco/report.xml")
+        html.enabled = true
+        csv.enabled = false
     }
 
     afterEvaluate {
@@ -160,5 +164,16 @@ codeCoverageReport.dependsOn {
 afterEvaluate {
     subprojects {
         apply from: file("${rootDir}/gradle/gradle-mvn-push.gradle")
+
+        configurations.all { Configuration c ->
+            if (c.name == "errorprone") {
+                resolutionStrategy.force 'com.google.errorprone:error_prone_core:2.3.2'
+            }
+        }
     }
+}
+
+wrapper{
+    gradleVersion = "4.7"
+    distributionType = Wrapper.DistributionType.ALL
 }

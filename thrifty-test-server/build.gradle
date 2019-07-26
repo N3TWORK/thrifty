@@ -20,7 +20,7 @@
  */
 dependencies {
     api group: 'junit', name: 'junit', version: '4.12'
-    implementation 'org.apache.thrift:libthrift:0.10.0'
+    implementation 'org.apache.thrift:libthrift:0.11.0'
 }
 
 uploadArchives.enabled = false
@@ -32,7 +32,3 @@ tasks['javadoc'].configure {
 
 // Ditto for checkstyle violations - though I think Thrifty does a little better here ;)
 tasks['checkstyleMain'].enabled = false
-
-compileJava {
-    options.compilerArgs += [ '-Xep:MissingOverride:OFF', '-Xep:NonOverridingEquals:OFF' ]
-}

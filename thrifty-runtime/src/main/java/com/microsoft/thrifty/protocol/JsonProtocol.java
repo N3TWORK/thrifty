@@ -43,7 +43,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package com.microsoft.thrifty.protocol;
 
 import com.microsoft.thrifty.TType;
@@ -54,9 +53,9 @@ import okio.ByteString;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.ProtocolException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Stack;
 
 /**
  * Json protocol implementation for thrift.
@@ -92,7 +91,7 @@ public class JsonProtocol extends Protocol {
     };
 
     // Stack of nested contexts that we may be in
-    private Stack<JsonBaseContext> contextStack = new Stack<>();
+    private ArrayDeque<JsonBaseContext> contextStack = new ArrayDeque<>();
 
     // Current context that we are in
     private JsonBaseContext context = new JsonBaseContext();
@@ -454,11 +453,11 @@ public class JsonProtocol extends Protocol {
                             }
 
                             codeunits.add((char) cu);
-                            buffer.write((new String(new int[]{codeunits.get(0), codeunits.get(1)}, 0, 2))
+                            buffer.write(new String(new int[]{codeunits.get(0), codeunits.get(1)}, 0, 2)
                                     .getBytes("UTF-8"));
                             codeunits.clear();
                         } else {
-                            buffer.write((new String(new int[]{cu}, 0, 1)).getBytes("UTF-8"));
+                            buffer.write(new String(new int[]{cu}, 0, 1).getBytes("UTF-8"));
                         }
                         continue;
                     } catch (UnsupportedEncodingException e) {
@@ -793,8 +792,6 @@ public class JsonProtocol extends Protocol {
                     return SET;
                 case TType.LIST:
                     return LIST;
-                case TType.ENUM:
-                    return I32;
                 default:
                     throw new IllegalArgumentException(
                             "Unknown TType ID: " + typeId);

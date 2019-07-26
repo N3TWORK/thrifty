@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 Microsoft Corporation
+ * Copyright 2015-2018 Microsoft Corporation
  * Copyright 2015 KeepSafe Software
  * Copyright 2013 Chris Banes
  *
@@ -81,5 +81,52 @@ afterEvaluate { project ->
     signing {
         required { isRelease && gradle.taskGraph.hasTask("uploadArchives") }
         sign configurations.archives
+    }
+
+    if (project.plugins.hasPlugin('org.jetbrains.kotlin') || project.plugins.hasPlugin('kotlin')) {
+        apply plugin: 'org.jetbrains.dokka'
+
+        dokka {
+            includes = ['Module.md']
+
+            linkMapping {
+                dir = project.file("src/main/kotlin")
+                url = "https://github.com/Microsoft/thrifty/tree/master/${project.name}/src/main/kotlin"
+                suffix = "#L"
+            }
+
+            jdkVersion = 8
+
+            outputFormat = 'html'
+            outputDirectory = "${project.buildDir}/docs/kdoc"
+        }
+    }
+
+    task javadocJar(type: Jar) {
+        if (project.plugins.hasPlugin('org.jetbrains.dokka')) {
+            dependsOn dokka
+            from dokka.outputDirectory
+        } else {
+            dependsOn javadoc
+            from 'build/docs/javadoc'
+        }
+
+        classifier = 'javadoc'
+    }
+
+    task sourcesJar(type: Jar) {
+        from sourceSets.main.allSource
+        classifier = 'sources'
+    }
+
+    artifacts {
+        archives javadocJar
+        archives sourcesJar
+
+        if (project.plugins.hasPlugin('com.github.johnrengelman.shadow')) {
+            archives shadowJar
+        } else {
+            archives jar
+        }
     }
 }
