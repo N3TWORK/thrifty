@@ -1028,8 +1028,11 @@ class ThriftyCodeGenerator {
             fromCodeMethod.addStatement("case \$L: return \$N", value, name)
         }
 
+        val unknownMember = TypeSpec.anonymousClassBuilder("\$L", Integer.MAX_VALUE)
+        builder.addEnumConstant("Unknown", unknownMember.build())
+
         fromCodeMethod
-                .addStatement("default: return null")
+                .addStatement("default: return Unknown")
                 .endControlFlow()
 
         builder.addMethod(fromCodeMethod.build())

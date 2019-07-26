@@ -496,7 +496,9 @@ class ThriftyCodeGeneratorTest {
               /**
                * ${"$"}Good, here's another
                */
-              FOO(0);
+              FOO(0),
+
+              Unknown(2147483647);
 
               public final int value;
 
@@ -507,7 +509,7 @@ class ThriftyCodeGeneratorTest {
               public static TestEnum findByValue(int value) {
                 switch (value) {
                   case 0: return FOO;
-                  default: return null;
+                  default: return Unknown;
                 }
               }
             }
